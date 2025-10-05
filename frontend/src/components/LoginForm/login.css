@@ -1,14 +1,59 @@
+/* login.css */
+
+.login-card {
+  background-color: var(--background-light);
+  padding: 2rem 3rem;
+  border-radius: 10px;
+  border: 1px solid var(--border-color);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+  width: 100%;
+  max-width: 450px;
+}
+
+.login-card h2 {
+  text-align: center;
+  margin-bottom: 1.5rem;
+  color: var(--text-primary);
+}
+
 .loginForm {
-	display: grid;
-	grid-template-columns: 1fr 5fr;
-	column-gap: 15px;
-	row-gap: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
 
-	p {
-		text-align: left;
-	}
+.form-group {
+  display: flex;
+  flex-direction: column;
+  text-align: left;
+}
 
-	input {
-		text-align: center;
-	}
+.form-group label {
+  margin-bottom: 0.5rem;
+  font-weight: bold;
+  color: var(--text-secondary);
+}
+
+.form-group input {
+  padding: 12px;
+  border-radius: 5px;
+  border: 1px solid var(--border-color);
+  background-color: var(--background-dark);
+  color: var(--text-primary);
+  font-size: 1rem;
+  transition:
+    border-color 0.2s,
+    box-shadow 0.2s;
+}
+
+.form-group input:focus {
+  outline: none;
+  border-color: var(--accent-color);
+  box-shadow: 0 0 0 2px rgba(0, 122, 204, 0.5);
+}
+
+.loginForm button {
+  margin-top: 1rem;
+  padding: 12px;
+  font-size: 1.1rem;
 }

@@ -30,6 +30,9 @@ function App() {
   function runCommand() {
     console.log("EXECUTING COMMAND " + terminalInput);
   }
+  function logout() {
+    setConnected(!isConnected);
+  }
   //RETURN
 
   return (
@@ -40,6 +43,7 @@ function App() {
           terminalInput={terminalInput}
           changeTerminalInput={setTerminalInput}
           runCommand={runCommand}
+          logout={logout}
         />
       ) : (
         <LoginForm
