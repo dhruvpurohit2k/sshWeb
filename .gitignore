@@ -2,6 +2,8 @@
 /node_modules
 frontend/node_modules
 backend/node_modules
+python-server/__pycache__
+python-server/env
 # Build output
 /dist
 /build
