@@ -1,0 +1,14 @@
+.loginForm {
+	display: grid;
+	grid-template-columns: 1fr 5fr;
+	column-gap: 15px;
+	row-gap: 10px;
+
+	p {
+		text-align: left;
+	}
+
+	input {
+		text-align: center;
+	}
+}
