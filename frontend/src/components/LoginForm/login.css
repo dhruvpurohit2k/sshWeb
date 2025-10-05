@@ -29,7 +29,7 @@
 }
 
 .form-group label {
-  margin-bottom: 0.5rem;
+  margin-top: 1rem;
   font-weight: bold;
   color: var(--text-secondary);
 }
