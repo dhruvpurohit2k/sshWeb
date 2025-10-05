@@ -52,12 +52,13 @@ function LoginForm(props) {
             </div>
             <div className="form-group">
               <label htmlFor="ssh-input">SSH KEY</label>
-              <input
+              <textarea
                 id="ssh-input"
                 name="ssh"
                 value={newUser.ssh}
                 onChange={newUserChange}
                 placeholder="Your SSH key"
+                rows="8"
               />
             </div>
             <div className="form-group">

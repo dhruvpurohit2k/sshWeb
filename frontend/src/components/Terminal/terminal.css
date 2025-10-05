@@ -21,6 +21,15 @@
   border-bottom: 1px solid var(--border-color);
 }
 
+.terminal-info {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  align-self: center;
+  justify-self: center;
+}
+
 #logout {
   background-color: #c74646;
   border-color: #c74646;
