@@ -1,3 +1,81 @@
+.terminal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 4px 10px;
+  background-color: #333;
+  color: #fff;
+}
+
+.terminal-info {
+  flex-grow: 1;
+}
+
+.header-controls {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  /* Adds space between buttons */
+}
+
+.mic-button {
+  background: none;
+  border: none;
+  color: #d4d4d4;
+  cursor: pointer;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.mic-button:hover {
+  color: #ffffff;
+}
+
+.mic-icon {
+  transition: color 0.2s ease-in-out;
+}
+
+#logout {
+  /* Your existing logout button styles */
+}
+
+/* --- NEW: Loading Icon Styles --- */
+.loading-icon {
+  animation: spin 1s linear infinite;
+  fill: #d4d4d4;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.mic-button {
+  background: none;
+  border: none;
+  color: #d4d4d4;
+  cursor: pointer;
+  padding: 0 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.mic-button:hover {
+  color: #ffffff;
+}
+
+.mic-icon {
+  transition: all 0.2s ease-in-out;
+}
+
 .terminal-window {
   display: flex;
   flex-direction: column;

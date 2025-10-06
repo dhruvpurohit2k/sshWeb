@@ -1,5 +1,3 @@
-// server.js
-
 require("dotenv").config();
 const express = require("express");
 const path = require("path");
@@ -8,19 +6,30 @@ const bcrypt = require("bcrypt");
 const http = require("http");
 const { Server } = require("socket.io");
 const { Client } = require("ssh2");
+const multer = require("multer");
+const axios = require("axios");
+const FormData = require("form-data");
+const fs = require("fs");
 
 const app = express();
 const server = http.createServer(app);
 const io = new Server(server, {
   cors: {
-    origin: "*", // Allow all origins for simplicity
+    origin: "*",
     methods: ["GET", "POST"],
   },
 });
 
 const PORT = process.env.PORT || 8080;
+const PYTHON_SERVER_URL = "http://localhost:8000/voice-to-command"; // Your FastAPI URL
 const saltRounds = 10;
 const buildPath = path.join(__dirname, "..", "frontend", "dist");
+
+// Setup for temporary audio file storage in a dedicated folder
+const uploadDir = path.join(__dirname, "uploads");
+if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir);
+const upload = multer({ dest: uploadDir });
+
 const dbPool = mysql.createPool({
   host: "localhost",
   user: process.env.MYSQL_USERNAME,
@@ -31,7 +40,6 @@ const dbPool = mysql.createPool({
   queueLimit: 0,
 });
 
-// Store active SSH connections, mapping socket.id to the connection
 const activeSessions = new Map();
 
 app.use(express.static(buildPath));
@@ -41,9 +49,7 @@ app.get("/", (req, res) => {
   res.sendFile(path.join(buildPath, "index.html"));
 });
 
-// --- YOUR EXISTING /createUser and /login ROUTES GO HERE ---
-// (No changes needed for these routes)
-
+// --- Existing User and Login Routes (no changes) ---
 app.post("/createUser", async (req, res) => {
   const {
     "new-user": username,
@@ -115,46 +121,63 @@ app.post("/login", async (req, res) => {
   }
 });
 
-// =================================================================
-// ===== NEW: SOCKET.IO AND SSH CONNECTION HANDLING ================
-// =================================================================
+app.post("/upload-audio", upload.single("audio"), async (req, res) => {
+  const socketId = req.body.socketId;
+  if (!req.file) {
+    return res.status(400).send({ message: "No audio file uploaded." });
+  }
+  if (!socketId || !io.sockets.sockets.has(socketId)) {
+    return res.status(400).send({ message: "Client session not found." });
+  }
+
+  const filePath = req.file.path;
+
+  try {
+    const form = new FormData();
+    form.append("file", fs.createReadStream(filePath), req.file.originalname);
+
+    const response = await axios.post(PYTHON_SERVER_URL, form, {
+      headers: form.getHeaders(),
+    });
+
+    const { command } = response.data;
+    io.to(socketId).emit("command-from-voice", { command });
+
+    res.status(200).json({ message: "Command processed." });
+  } catch (error) {
+    console.error("Error forwarding audio to Python:", error.message);
+    io.to(socketId).emit("voice-error", {
+      message: "Failed to process voice command.",
+    });
+    res.status(500).send({ message: "Error processing audio." });
+  } finally {
+    fs.unlink(filePath, (err) => {
+      if (err) console.error("Failed to delete temp audio file:", err);
+    });
+  }
+});
 
 io.on("connection", (socket) => {
   console.log(`Socket connected: ${socket.id}`);
 
-  // 1. Listen for the client to request an SSH session
   socket.on("start-ssh", (config) => {
     const conn = new Client();
-
     conn
       .on("ready", () => {
-        // SSH connection successful, open a shell
         conn.shell((err, stream) => {
-          if (err) {
-            return socket.emit("ssh-error", { error: err.message });
-          }
-
-          // Store the connection and its stream
+          if (err) return socket.emit("ssh-error", { error: err.message });
           activeSessions.set(socket.id, { conn, stream });
-
-          // Notify the client that SSH is ready
           socket.emit("ssh-ready", { sessionId: socket.id });
-
-          // Bridge SSH output to the WebSocket
           stream.on("data", (data) => {
             socket.emit("terminal-output", data.toString("utf-8"));
           });
-
-          // Handle SSH stream closure
           stream.on("close", () => {
-            console.log(`SSH Stream for ${socket.id} closed.`);
             socket.emit("ssh-closed");
             conn.end();
           });
         });
       })
       .on("error", (err) => {
-        console.error(`SSH Error for ${socket.id}:`, err.message);
         socket.emit("ssh-error", { error: err.message });
       })
       .connect({
@@ -165,7 +188,6 @@ io.on("connection", (socket) => {
       });
   });
 
-  // 2. Listen for input from the client's terminal
   socket.on("terminal-input", ({ command }) => {
     const session = activeSessions.get(socket.id);
     if (session && session.stream) {
@@ -173,14 +195,12 @@ io.on("connection", (socket) => {
     }
   });
 
-  // 3. Handle disconnection (triggered by logout or closing the browser)
   socket.on("disconnect", () => {
     console.log(`Socket disconnected: ${socket.id}`);
     const session = activeSessions.get(socket.id);
     if (session) {
-      session.conn.end(); // Close the SSH connection
-      activeSessions.delete(socket.id); // Clean up the map
-      console.log(`Cleaned up SSH session for ${socket.id}`);
+      session.conn.end();
+      activeSessions.delete(socket.id);
     }
   });
 });
