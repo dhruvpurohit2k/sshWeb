@@ -27,12 +27,18 @@ async def voice_to_command(file: UploadFile = File(...)):
         print(f"🎙️ Transcribed: {transcription}")
 
         # Step 2: Use Ollama to convert text → UNIX command
-        prompt = f"Give the unix cli command to perform this taks:\n\n{transcription}\n\n just give one single line that is unix cli command.No explaination no suggestions. Just one single line. Nothing else"
+        prompt = f"Convert this instruction into a valid Unix shell command:\n\n{transcription}\n\n . Only return the command in a single line with no quotes."
         result = subprocess.run(
             ["ollama", "run", "phi3", prompt], capture_output=True, text=True
         )
 
         command = result.stdout.strip()
+        command = (
+            command.replace("```bash", "")
+            .replace("```bash\n", "")
+            .replace("```", "")
+            .strip()
+        )
         print(f"💻 Command: {command}")
 
         return JSONResponse(

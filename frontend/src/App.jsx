@@ -6,6 +6,12 @@ import "./App.css";
 import LoginForm from "./components/LoginForm/LoginForm";
 import Terminal from "./components/Terminal/Terminal";
 
+function isValidHost(host) {
+  // This regex checks for a valid domain name or an IP address.
+  const hostRegex =
+    /^(?:[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?\.)+[a-zA-Z]{2,6}$|^((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/;
+  return hostRegex.test(host);
+}
 function isValidIpAddress(ip) {
   // Regex for IPv4 addresses
   const ipv4Regex =
@@ -60,7 +66,10 @@ function App() {
       alert("PASSWORDS DONT MATCH");
       return;
     }
-    if (isValidIpAddress(newUserDetails["new-host"])) {
+    if (
+      !isValidIpAddress(newUserDetails["new-host"]) ||
+      !isValidHost(newUserDetails["new-host"])
+    ) {
       alert("INVALID HOST IP");
       return;
     }
